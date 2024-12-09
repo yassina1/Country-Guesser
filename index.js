@@ -3,17 +3,20 @@ import bodyParser from "body-parser";
 import pg from "pg";
 
 const db = new pg.Client({
-  user: "postgres",
-  host: "localhost",
-  database: "world",
-  password: "blueflower123",
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
 const app = express();
 const port = 3000;
 
-db.connect();
+db.connect()
+  .then(() => {
+    console.log('Connected to database');
+  })
+  .catch(err => {
+    console.error('Error connecting to database:', err);
+  });
 
 let quiz = [];
 db.query("SELECT * FROM capitals", (err, res) => {
@@ -22,7 +25,6 @@ db.query("SELECT * FROM capitals", (err, res) => {
   } else {
     quiz = res.rows;
   }
-  db.end();
 });
 
 let totalCorrect = 0;
